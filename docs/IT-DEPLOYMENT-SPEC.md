@@ -25,14 +25,14 @@ This application is a **single Node.js service** that:
 
 ```mermaid
 flowchart LR
-  User[Browser / QR code] -->|HTTPS| RP[Nginx or Apache]
-  RP -->|HTTP localhost:PORT| Node[Node.js Express]
-  Node --> Static[public/ UI]
-  Node --> API[/api/*]
-  Node --> Data[(data/submissions.json)]
-  Node -->|optional| Webhook[LEAD_WEBHOOK_URL]
-  Node -->|optional| Email[Email API]
-  Admin[Sales / Marketing] -->|HTTPS + ADMIN_KEY| AdminUI[/admin]
+  User["Browser / QR code"] -->|HTTPS| RP["Nginx or Apache"]
+  RP -->|"HTTP localhost:PORT"| Node["Node.js Express"]
+  Node --> Static["public UI"]
+  Node --> API["JSON API routes"]
+  Node --> Data[("submissions.json")]
+  Node -->|optional| Webhook["LEAD_WEBHOOK_URL"]
+  Node -->|optional| Email["Email API"]
+  Admin["Sales / Marketing"] -->|"HTTPS + ADMIN_KEY"| AdminUI["Admin dashboard"]
 ```
 
 ### 2.1 User flow
