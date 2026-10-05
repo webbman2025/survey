@@ -324,7 +324,7 @@ export const ui = {
     breakdownTitle: b("Pillar breakdown", "六大維度分析"),
     strongest: b("Strongest pillar", "最強維度"),
     opportunity: b("Biggest opportunity", "最大提升空間"),
-    cta: b("Book Free 3Biz × AWS AI Consultation", "預約免費 3Biz × AWS AI 諮詢"),
+    cta: b("Book Free Business AIQ Health Check", "預約免費企業 AIQ 健康掃描"),
     restart: b("Retake assessment", "重新評估"),
     gaugeCap: b("AIQ score (0–100)", "AIQ 分數（0–100）"),
     gaugeRawNote: b(
