@@ -344,8 +344,13 @@ export const ui = {
   ),
 };
 
-export const ctaConsultationUrl =
-  process.env.CONSULTATION_URL || "https://www.3business.com.hk/";
+const ctaConsultationUrlByLang = {
+  en: process.env.CONSULTATION_URL_EN || process.env.CONSULTATION_URL || "https://web.three.com.hk/3business/contactus-en.html",
+  "zh-Hant":
+    process.env.CONSULTATION_URL_ZH ||
+    process.env.CONSULTATION_URL ||
+    "https://web.three.com.hk/3business/contactus.html",
+};
 
 function localizeQuestion(q, lang) {
   return {
@@ -438,7 +443,7 @@ export function getPublicConfig(lang = "en") {
       label: t.label[L],
       description: t.description[L],
     })),
-    ctaConsultationUrl,
+    ctaConsultationUrl: ctaConsultationUrlByLang[L],
     storage: {
       mode: "file",
       label: L === "zh-Hant" ? "安全儲存於 3Business 伺服器" : "Stored securely on 3Business servers",

@@ -16,6 +16,18 @@ const TIER_COLOR = {
   AI_ACCELERATOR: "#22c55e",
 };
 
+/** Official 3Business contact forms — used if API env still points at legacy URLs */
+const CTA_LINKS = {
+  en: "https://web.three.com.hk/3business/contactus-en.html",
+  "zh-Hant": "https://web.three.com.hk/3business/contactus.html",
+};
+
+function consultationUrl() {
+  const fromConfig = CFG?.ctaConsultationUrl || "";
+  if (/web\.three\.com\.hk\/3business\/contactus/i.test(fromConfig)) return fromConfig;
+  return CTA_LINKS[lang] || CTA_LINKS.en;
+}
+
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
   String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({
@@ -176,8 +188,8 @@ function renderQuestion() {
     <div class="err-msg" id="qErr"></div>
     <div class="q-foot">
       <button class="btn ghost" id="qBack">&larr; ${lang === "zh-Hant" ? "返回" : "Back"}</button>
-      <span class="hint">${lang === "zh-Hant" ? "按 <kbd>1</kbd>–<kbd>4</kbd> 選擇，<kbd>Enter</kbd> 繼續" : "Press <kbd>1</kbd>–<kbd>4</kbd> to choose, <kbd>Enter</kbd> to continue"}</span>
-      <button class="btn" id="qNext" ${answers[q.id] ? "" : "disabled"}>${isLast ? (lang === "zh-Hant" ? "繼續" : "Continue") : lang === "zh-Hant" ? "下一題" : "Next"} &rarr;</button>
+      <span class="hint">${lang === "zh-Hant" ? "先選擇答案，再按 <kbd>Next</kbd> 或 <kbd>Enter</kbd> 繼續" : "Choose an answer, then tap <kbd>Next</kbd> or press <kbd>Enter</kbd>"}</span>
+      <button class="btn q-next${canProceedQuestion(q) ? " is-ready" : ""}" id="qNext" type="button" ${canProceedQuestion(q) ? "" : "disabled"}>${isLast ? (lang === "zh-Hant" ? "繼續" : "Continue") : lang === "zh-Hant" ? "下一題" : "Next"} &rarr;</button>
     </div>`;
 
   $("quizCard").querySelectorAll(".opt").forEach((el) => {
@@ -195,6 +207,7 @@ function renderQuestion() {
   if (otherInput) {
     otherInput.addEventListener("input", (e) => {
       answers.industry_other = e.target.value;
+      syncNextButton();
     });
   }
 
@@ -202,14 +215,37 @@ function renderQuestion() {
   $("qNext").addEventListener("click", goNext);
 }
 
+function canProceedQuestion(q) {
+  if (!q || !answers[q.id]) return false;
+  if (q.othersOptionId && answers[q.id] === q.othersOptionId) {
+    return !!(answers.industry_other || "").trim();
+  }
+  return true;
+}
+
+function syncNextButton() {
+  const q = QUESTIONS[idx];
+  const nextBtn = $("qNext");
+  if (!nextBtn || !q) return;
+  const ok = canProceedQuestion(q);
+  nextBtn.disabled = !ok;
+  nextBtn.classList.toggle("is-ready", ok);
+}
+
 function selectOption(optId) {
   const q = QUESTIONS[idx];
   answers[q.id] = optId;
-  renderQuestion();
-  if (q.othersOptionId && optId === q.othersOptionId) return;
-  setTimeout(() => {
-    if (QUESTIONS[idx] === q && answers[q.id] === optId) goNext();
-  }, 320);
+  if (q.othersOptionId && (optId === q.othersOptionId || $("industry_other"))) {
+    renderQuestion();
+    return;
+  }
+  $("quizCard").querySelectorAll(".opt").forEach((el) => {
+    const on = el.dataset.opt === optId;
+    el.classList.toggle("sel", on);
+    el.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  $("qErr").textContent = "";
+  syncNextButton();
 }
 
 function validateCurrentQuestion() {
@@ -428,7 +464,7 @@ function renderResult(data) {
     </div>
 
     <div class="result-foot">
-      <a class="btn block" id="ctaBtn" href="${esc(CFG.ctaConsultationUrl)}" target="_blank" rel="noopener">${esc(R.cta)}
+      <a class="btn block" id="ctaBtn" href="${esc(consultationUrl())}" target="_blank" rel="noopener noreferrer">${esc(R.cta)}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>
       <button class="btn ghost" id="restartBtn">${esc(R.restart)}</button>

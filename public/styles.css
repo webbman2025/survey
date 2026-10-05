@@ -94,6 +94,8 @@ body {
 .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(80, 72, 155, .28); }
 .btn:active { transform: translateY(0); }
 .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn.q-next { opacity: .38; transition: opacity .25s ease, transform .12s ease, box-shadow .2s ease; }
+.btn.q-next.is-ready:not(:disabled) { opacity: 1; }
 .btn.ghost { background: #fff; color: var(--ink-2); border: 1.5px solid var(--line); box-shadow: none; }
 .btn.ghost:hover { border-color: #cbd5e1; color: var(--ink); box-shadow: var(--shadow-sm); }
 .btn.block { width: 100%; justify-content: center; }
