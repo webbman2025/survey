@@ -83,7 +83,18 @@ function renderTable(rows) {
 function fmtDate(s) {
   if (!s) return "";
   const d = new Date(s);
-  return isNaN(d) ? s : d.toISOString().replace("T", " ").slice(0, 16);
+  if (isNaN(d)) return s;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Hong_Kong",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (type) => parts.find((p) => p.type === type)?.value || "";
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`;
 }
 
 function esc(s) {
