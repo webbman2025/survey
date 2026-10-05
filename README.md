@@ -16,7 +16,8 @@ Interactive **5-minute AI readiness self-assessment** for the **3Business × AWS
 ```bash
 npm install
 npm start
-# → http://localhost:3000
+# Localhost: http://127.0.0.1:3000 or http://localhost:3000
+# Same Wi‑Fi: use the LAN IP printed in the terminal (e.g. http://192.168.x.x:3000)
 ```
 
 Optional environment variables (`.env` or shell):
@@ -24,6 +25,7 @@ Optional environment variables (`.env` or shell):
 | Variable | Purpose |
 |----------|---------|
 | `PORT` | HTTP port (default `3000`) |
+| `LISTEN_HOST` | Bind address: `0.0.0.0` (default) for localhost + LAN; `127.0.0.1` for local only |
 | `ADMIN_KEY` | Admin API key (default `demo-admin-key`) |
 | `CONSULTATION_URL` | CTA link on results page |
 | `LEAD_WEBHOOK_URL` | POST JSON payload on each submission |

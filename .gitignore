@@ -3,3 +3,4 @@ data/submissions.json
 .env
 .DS_Store
 .vercel
+.env*.local

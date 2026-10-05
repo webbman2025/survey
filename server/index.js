@@ -1,4 +1,5 @@
 import express from "express";
+import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
 import { computeScore, SCORED_IDS } from "./scoring.js";
@@ -9,7 +10,23 @@ import { notifyLead, sendReportEmail } from "./notifications.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
+/** 0.0.0.0 = localhost + LAN IP; 127.0.0.1 = local only. Use LISTEN_HOST — not HOST (macOS shells often set HOST to the machine name). */
+const LISTEN_HOST =
+  process.env.LISTEN_HOST ||
+  (process.env.HOST === "0.0.0.0" || process.env.HOST === "127.0.0.1" ? process.env.HOST : "0.0.0.0");
 const ADMIN_KEY = process.env.ADMIN_KEY || "demo-admin-key";
+
+function lanUrls(port) {
+  const urls = [];
+  for (const ifaces of Object.values(os.networkInterfaces())) {
+    for (const iface of ifaces || []) {
+      if (iface.family === "IPv4" && !iface.internal && !iface.address.startsWith("169.254.")) {
+        urls.push(`http://${iface.address}:${port}`);
+      }
+    }
+  }
+  return urls;
+}
 
 app.use(express.json({ limit: "256kb" }));
 
@@ -146,8 +163,17 @@ app.get("/", (_req, res) => {
 export default app;
 
 if (!process.env.VERCEL) {
-  app.listen(PORT, "127.0.0.1", () => {
-    console.log(`Business AIQ Health Check → http://127.0.0.1:${PORT}`);
-    console.log(`Admin dashboard → http://127.0.0.1:${PORT}/admin (key: ${ADMIN_KEY})`);
+  app.listen(PORT, LISTEN_HOST, () => {
+    console.log("Business AIQ Health Check");
+    console.log(`  Localhost → http://127.0.0.1:${PORT}`);
+    console.log(`  Localhost → http://localhost:${PORT}`);
+    const lan = lanUrls(PORT);
+    if (lan.length) {
+      lan.forEach((u) => console.log(`  LAN IP    → ${u}`));
+    } else if (LISTEN_HOST === "0.0.0.0") {
+      console.log("  LAN IP    → (no Wi‑Fi/Ethernet IPv4 found; check network settings)");
+    }
+    console.log(`Admin → http://127.0.0.1:${PORT}/admin (key: ${ADMIN_KEY})`);
+    if (lan[0]) console.log(`Admin → ${lan[0]}/admin`);
   });
 }

@@ -1,6 +1,6 @@
 # Business AIQ Health Check — IT Deployment Specification
 
-**Document version:** 1.0  
+**Document version:** 1.1  
 **Application ID:** `business-aiq-health-check`  
 **Purpose:** AWS Seminar / 3Business lead-generation survey (bilingual EN + 繁體中文)  
 **Source repository:** https://github.com/webbman2025/survey  
@@ -132,7 +132,8 @@ Create `/var/www/business-aiq/.env` (permissions **600**, owner = service user):
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `PORT` | No | Listen port (default **3000**). App binds **127.0.0.1** only. |
+| `PORT` | No | Listen port (default **3000**) |
+| `LISTEN_HOST` | No | Bind address. **Production (behind reverse proxy):** `127.0.0.1` (default if unset on Linux server — see below). **Local rehearsal / LAN QR testing:** `0.0.0.0` so the app is reachable at `http://127.0.0.1:PORT`, `http://localhost:PORT`, and `http://<LAN-IP>:PORT`. Do **not** use the shell variable `HOST` (macOS often sets `HOST` to the computer name); the app reads **`LISTEN_HOST`** only. |
 | `ADMIN_KEY` | **Yes (prod)** | Secret for `/admin` and `GET /api/results` (`x-admin-key` header) |
 | `CONSULTATION_URL` | No | Overrides CTA for all languages if set |
 | `CONSULTATION_URL_EN` | No | Result CTA (English) — default: 3Business contact EN |
@@ -142,6 +143,23 @@ Create `/var/www/business-aiq/.env` (permissions **600**, owner = service user):
 | `EMAIL_FROM` | No | Sender address for report email |
 
 See `.env.example` in the repository.
+
+**Production `.env` example:**
+
+```bash
+PORT=3000
+LISTEN_HOST=127.0.0.1
+ADMIN_KEY=<strong-secret>
+```
+
+**Local / seminar rehearsal (same Wi‑Fi, no public internet):**
+
+```bash
+LISTEN_HOST=0.0.0.0
+npm start
+```
+
+On start, the process logs **localhost** URLs and any detected **LAN IPv4** addresses. Do not expose port `3000` on the public internet; use HTTPS reverse proxy for production.
 
 Load env in systemd (below) or export before `npm start`.
 
@@ -182,6 +200,7 @@ User=deploy
 WorkingDirectory=/var/www/business-aiq
 EnvironmentFile=/var/www/business-aiq/.env
 Environment=NODE_ENV=production
+Environment=LISTEN_HOST=127.0.0.1
 ExecStart=/usr/bin/npm start
 Restart=on-failure
 RestartSec=5
@@ -410,6 +429,7 @@ No database migration required.
 | **Failed to fetch** | Node not running or API not proxied | Start service; proxy `/api` to same origin |
 | **Admin empty** | New server / empty `data/` | Expected until first submit; check file permissions |
 | **CTA wrong URL** | Old env `CONSULTATION_URL` | Set URLs in `.env` to `web.three.com.hk` contact pages |
+| **LAN device cannot open survey** | `LISTEN_HOST=127.0.0.1` or macOS firewall | Set `LISTEN_HOST=0.0.0.0` for rehearsal; allow Node incoming on `PORT` in firewall; use URL printed at startup (e.g. `http://192.168.x.x:3000`) |
 
 ---
 
@@ -418,7 +438,8 @@ No database migration required.
 | Environment | URL | Notes |
 |-------------|-----|--------|
 | Vercel (dev/demo) | https://survey-taupe-three.vercel.app | Ephemeral `/tmp` storage on serverless — **not** recommended for production lead retention |
-| On-prem / VM | `https://<IT-assigned-host>/` | **Recommended** for PDPO + durable `data/submissions.json` |
+| Local dev / LAN rehearsal | `http://127.0.0.1:3000`, `http://<LAN-IP>:3000` | `LISTEN_HOST=0.0.0.0`; leads in `data/submissions.json` on that machine |
+| On-prem / VM | `https://<IT-assigned-host>/` | **Recommended** for PDPO + durable `data/submissions.json`; `LISTEN_HOST=127.0.0.1` + reverse proxy |
 
 ---
 
