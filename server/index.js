@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { computeScore, SCORED_IDS } from "./scoring.js";
 import { getPublicConfig, getTiersForScoring, pillarLabels, profileQuestions } from "./surveyConfig.js";
-import { saveSubmission, listSubmissions } from "./storage.js";
+import { saveSubmission, listSubmissions, storageMode } from "./storage.js";
 import { notifyLead, sendReportEmail } from "./notifications.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -101,7 +101,7 @@ app.post("/api/submit", async (req, res) => {
       breakdown: scored.breakdown,
     };
 
-    saveSubmission(record);
+    await saveSubmission(record);
     await notifyLead(record);
     await sendReportEmail(record);
 
@@ -120,10 +120,16 @@ app.post("/api/submit", async (req, res) => {
   }
 });
 
-app.get("/api/results", (req, res) => {
+app.get("/api/results", async (req, res) => {
   const key = req.get("x-admin-key");
   if (key !== ADMIN_KEY) return res.status(401).json({ error: "Unauthorized" });
-  res.json({ rows: listSubmissions() });
+  try {
+    const rows = await listSubmissions();
+    res.json({ rows, storageMode: storageMode() });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to load results" });
+  }
 });
 
 app.get("/admin", (_req, res) => {

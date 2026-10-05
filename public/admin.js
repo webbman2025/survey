@@ -21,6 +21,11 @@ async function load() {
       return;
     }
     currentRows = data.rows || [];
+    if (data.storageMode === "vercel-ephemeral") {
+      $("err").textContent =
+        "Warning: Vercel storage is temporary until Blob is connected. Leads may not appear after redeploys. Connect Vercel Blob (see IT spec).";
+      $("err").style.color = "#b45309";
+    }
     renderSummary(currentRows);
     renderTable(currentRows);
   } catch (e) {
