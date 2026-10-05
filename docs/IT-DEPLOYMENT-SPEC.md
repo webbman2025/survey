@@ -133,7 +133,7 @@ Create `/var/www/business-aiq/.env` (permissions **600**, owner = service user):
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `PORT` | No | Listen port (default **3000**) |
-| `LISTEN_HOST` | No | Bind address. **Production (behind reverse proxy):** `127.0.0.1` (default if unset on Linux server — see below). **Local rehearsal / LAN QR testing:** `0.0.0.0` so the app is reachable at `http://127.0.0.1:PORT`, `http://localhost:PORT`, and `http://<LAN-IP>:PORT`. Do **not** use the shell variable `HOST` (macOS often sets `HOST` to the computer name); the app reads **`LISTEN_HOST`** only. |
+| `LISTEN_HOST` | No | Bind address (default **`0.0.0.0`**). **Production (behind reverse proxy):** set **`127.0.0.1`** so only the local proxy can reach Node. **Local rehearsal / LAN QR testing:** keep **`0.0.0.0`** for `http://127.0.0.1:PORT`, `http://localhost:PORT`, and `http://<LAN-IP>:PORT`. Do **not** rely on the shell variable `HOST` (macOS often sets `HOST` to the computer name); the app reads **`LISTEN_HOST`** only. |
 | `ADMIN_KEY` | **Yes (prod)** | Secret for `/admin` and `GET /api/results` (`x-admin-key` header) |
 | `CONSULTATION_URL` | No | Overrides CTA for all languages if set |
 | `CONSULTATION_URL_EN` | No | Result CTA (English) — default: 3Business contact EN |
