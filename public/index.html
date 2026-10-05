@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Business AIQ Health Check | 3Business × AWS</title>
+  <meta name="description" content="A 5-minute, 6-pillar AI readiness self-assessment for Hong Kong enterprises. Score your AIQ out of 100 and get instant tier diagnosis." />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Google Tag Manager (replace GTM-XXXXXX before production) -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtagEvent(name, params) {
+      window.dataLayer.push(Object.assign({ event: name }, params || {}));
+    }
+  </script>
+</head>
+<body>
+  <div class="stage">
+    <div class="topbar">
+      <div class="brand">
+        <img src="assets/three-business.png" class="brand-logo" alt="3Business" />
+        <span class="brand-divider" aria-hidden="true"></span>
+        <small id="brandSubtitle">Business AIQ Health Check</small>
+      </div>
+      <div class="topbar-actions">
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" class="lang-btn active" data-lang="en" id="langEn">EN</button>
+          <button type="button" class="lang-btn" data-lang="zh-Hant" id="langZh">繁中</button>
+        </div>
+        <a href="admin.html" class="link-quiet" id="adminLink">Results dashboard &rarr;</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="shell">
+        <!-- LANDING -->
+        <section class="card hero" id="screenLanding">
+          <span class="hero-badge" id="heroBadge"><span class="dot"></span></span>
+          <h1 id="heroTitle"></h1>
+          <p class="lead" id="heroLead"></p>
+
+          <div class="hero-visual" aria-hidden="true">
+            <svg width="280" height="150" viewBox="0 0 280 150" fill="none">
+              <defs>
+                <linearGradient id="hv" x1="0" y1="0" x2="280" y2="0" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#514899"/><stop offset="0.5" stop-color="#4f569e"/><stop offset="1" stop-color="#4baeab"/>
+                </linearGradient>
+              </defs>
+              <rect x="30" y="96" width="26" height="44" rx="6" fill="#e6ebf5"/>
+              <rect x="72" y="74" width="26" height="66" rx="6" fill="#dfe6f7"/>
+              <rect x="114" y="52" width="26" height="88" rx="6" fill="url(#hv)" opacity="0.85"/>
+              <rect x="156" y="66" width="26" height="74" rx="6" fill="#dfe6f7"/>
+              <rect x="198" y="40" width="26" height="100" rx="6" fill="url(#hv)"/>
+              <path d="M30 92 C 80 60, 120 70, 150 46 S 210 24, 235 30" stroke="url(#hv)" stroke-width="3" stroke-linecap="round" fill="none"/>
+              <circle cx="235" cy="30" r="5" fill="#4baeab"/>
+            </svg>
+          </div>
+
+          <div class="hero-chips" id="heroChips"></div>
+          <button class="btn block" id="startBtn"></button>
+          <p class="hero-fine" id="heroFine"></p>
+        </section>
+
+        <!-- QUIZ -->
+        <section class="hidden" id="screenQuiz">
+          <div class="progress-wrap">
+            <div class="progress-meta">
+              <span class="section-eyebrow" id="qSection"></span>
+              <span class="q-count" id="qCount"></span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="qProgress"></div></div>
+          </div>
+          <div class="card" id="quizCard"></div>
+        </section>
+
+        <!-- CONTACT -->
+        <section class="hidden" id="screenContact">
+          <div class="card">
+            <div class="contact-head">
+              <div class="contact-secure">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                <span id="contactSecureLabel">Your report is ready</span>
+              </div>
+              <h2 id="contactTitle" style="font-size:23px;letter-spacing:-.02em;margin:6px 0 6px;"></h2>
+              <p class="muted" id="contactIntro" style="margin:0 0 18px;font-size:15px;"></p>
+            </div>
+            <div id="contactForm"></div>
+            <div class="err-msg" id="contactErr"></div>
+            <div class="actions contact-actions">
+              <button class="btn ghost" id="contactBack">&larr; Back</button>
+              <button class="btn" id="submitBtn"></button>
+            </div>
+          </div>
+        </section>
+
+        <!-- RESULT -->
+        <section class="hidden" id="screenResult">
+          <div class="card result" id="resultCard"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <img src="assets/three-business.png" class="brand-logo" alt="3Business" />
+    <span id="footText"></span>
+  </footer>
+
+  <script src="scoring-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

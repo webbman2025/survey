@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIQ Results Dashboard | 3Business</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar" style="padding-left:0;padding-right:0">
+      <div class="brand">
+        <img src="/assets/three-business.png" class="brand-logo" alt="3Business" />
+        <span class="brand-divider"></span>
+        <small>Business AIQ — Results</small>
+      </div>
+      <a href="/" class="link-quiet">&larr; Survey</a>
+    </div>
+
+    <div class="page-card">
+      <h1 style="margin:0 0 6px;font-size:26px;letter-spacing:-.02em">Lead &amp; score dashboard</h1>
+      <p class="muted" style="margin:0 0 16px">Enter the admin key configured on the server (<code>ADMIN_KEY</code>).</p>
+
+      <div class="admin-toolbar">
+        <input type="password" id="keyInput" placeholder="Admin key" autocomplete="off" />
+        <button class="btn" id="loadBtn">Load results</button>
+        <input type="search" id="filterInput" placeholder="Filter by company or email…" />
+      </div>
+      <div class="err-msg" id="err"></div>
+
+      <div class="stat-grid hidden" id="summary"></div>
+
+      <div class="table-scroll hidden" id="table">
+        <table>
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Company</th>
+              <th>Name</th>
+              <th>Title</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Raw</th>
+              <th>AIQ %</th>
+              <th>Tier</th>
+              <th>Lang</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <p class="muted hidden" id="empty">No submissions yet.</p>
+    </div>
+  </div>
+  <script src="/admin.js"></script>
+</body>
+</html>

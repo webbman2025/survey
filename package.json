@@ -1,0 +1,19 @@
+{
+  "name": "business-aiq-health-check",
+  "version": "1.0.0",
+  "private": true,
+  "description": "3Business × AWS — Business AIQ Health Check survey",
+  "type": "module",
+  "scripts": {
+    "prestart": "node server/exportStaticConfig.js",
+    "start": "node server/index.js",
+    "dev": "node server/exportStaticConfig.js && node --watch server/index.js",
+    "test": "node server/verify-scoring.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
