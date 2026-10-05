@@ -283,7 +283,7 @@ export const tiers = [
 export const ui = {
   productName: b("Business AIQ Health Check", "企業 AIQ 健康掃描"),
   landing: {
-    badge: b("3Business × AWS · Free · 6 pillars · instant report", "3Business × AWS · 免費 · 6 大維度 · 即時報告"),
+    badge: b("3Business x Free Business AIQ Health Check", "3Business x 免費企業 AIQ 健康掃描"),
     title: b("How ", "您的企業"),
     titleGrad: b("AI-ready", "AI 成熟度"),
     titleEnd: b(" is your business?", "如何？"),
