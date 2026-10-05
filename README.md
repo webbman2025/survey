@@ -9,6 +9,7 @@ Interactive **5-minute AI readiness self-assessment** for the **3Business × AWS
 - **AIQ scoring**: `(raw − 10) / 30 × 100` with Tier 1–4 diagnosis and 6-pillar breakdown
 - **Lead capture**: PDPO consent, HK 8-digit phone validation, email validation
 - **Admin dashboard** at `/admin` (protected by `ADMIN_KEY`)
+- **Lead storage:** JSON only (no database) — `data/submissions.json` locally/on-prem; [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) on Vercel with `BLOB_READ_WRITE_TOKEN`
 - **Analytics hooks**: `survey_start`, `survey_step_complete`, `survey_submission`, `cta_consultation_click` via `dataLayer`
 
 ## Quick start
@@ -29,9 +30,12 @@ Optional environment variables (`.env` or shell):
 | `ADMIN_KEY` | Admin API key (default `demo-admin-key`) |
 | `CONSULTATION_URL` | CTA link on results page |
 | `LEAD_WEBHOOK_URL` | POST JSON payload on each submission |
+| `BLOB_READ_WRITE_TOKEN` | Vercel: persist leads to Blob (not used on-prem) |
 | `EMAIL_API_KEY` / `EMAIL_FROM` | Placeholder for report email integration |
 
 Question copy and tiers live in **`server/surveyConfig.js`** (single replaceable data module).
+
+**IT handoff:** [docs/IT-DEPLOYMENT-SPEC.md](docs/IT-DEPLOYMENT-SPEC.md) (storage modes, no DB required for seminar deploy).
 
 ## Project layout
 

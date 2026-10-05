@@ -1,6 +1,6 @@
 # Business AIQ Health Check — IT Deployment Specification
 
-**Document version:** 1.1  
+**Document version:** 1.2  
 **Application ID:** `business-aiq-health-check`  
 **Purpose:** AWS Seminar / 3Business lead-generation survey (bilingual EN + 繁體中文)  
 **Source repository:** https://github.com/webbman2025/survey  
@@ -13,9 +13,11 @@ This application is a **single Node.js service** that:
 
 1. Serves the survey **frontend** (static files under `public/`).
 2. Exposes a **JSON API** for questionnaire config, scoring, lead submission, and admin export.
-3. Persists leads to a **local JSON file** (`data/submissions.json`) on the server filesystem.
+3. Persists leads as **JSON** (no SQL database in this application).
 
 **Critical:** Uploading only HTML/CSS/JS to Apache/IIS **without** running the Node process will **not** work for production (users will see “Failed to fetch” or results without saved leads). IT must deploy **Node 18+** with a **reverse proxy** and **HTTPS**.
+
+**Database:** A separate MySQL/PostgreSQL/MongoDB instance is **not required** for seminar-scale traffic on a single Node server. Production on-prem uses **`data/submissions.json`** with filesystem backup. Optional **`LEAD_WEBHOOK_URL`** can mirror each lead to CRM. Add a database only if IT needs multi-server writes, complex querying, or long-term enterprise retention beyond file + CRM.
 
 ---
 
@@ -50,8 +52,35 @@ flowchart LR
 | Web framework | Express 4.x |
 | Frontend | Vanilla HTML/CSS/JS (no build step required) |
 | Config / copy | `server/surveyConfig.js` (single source of truth) |
-| Lead storage (default) | JSON file on disk |
+| Lead storage | JSON (file, Vercel Blob, or ephemeral `/tmp` — see §2.3) |
 | Package manager | npm (`package-lock.json` committed) |
+
+### 2.3 Lead persistence (no database)
+
+Implementation: **`server/storage.js`**. Each submission is one JSON object (contact, answers, score, tier, timestamp). The admin API returns all records; there is no SQL query layer.
+
+| Mode | When | Where leads live | Durable? |
+|------|------|------------------|----------|
+| **`file`** | On-prem / VM / local `npm start` (default) | `data/submissions.json` (array, newest first) | **Yes** — backup this file |
+| **`vercel-blob`** | Vercel with `BLOB_READ_WRITE_TOKEN` | Private objects `leads/<submission-id>.json` ([Vercel Blob](https://vercel.com/docs/storage/vercel-blob)) | **Yes** for serverless |
+| **`vercel-ephemeral`** | Vercel without Blob token | `/tmp/survey-submissions.json` | **No** — do not use for production leads |
+
+The admin dashboard (`GET /api/results`) includes **`storageMode`** (`file` \| `vercel-blob` \| `vercel-ephemeral`) for verification.
+
+**When JSON file storage is appropriate (recommended for 3Business on-prem):**
+
+- Single Node process behind reverse proxy
+- Campaign volume (hundreds–low thousands of submissions)
+- Daily backup of `data/` during the event
+- Optional webhook to CRM as system of record
+
+**When IT should add a database or CRM-only storage:**
+
+- Multiple app instances writing concurrently to the same host
+- Ad-hoc reporting (filters, date ranges) without exporting JSON
+- Strict retention, deletion workflows, or audit requirements beyond file backup + PDPO process
+
+Question copy and tiers remain in **`server/surveyConfig.js`** — not in any database.
 
 ---
 
@@ -106,7 +135,8 @@ survey/
 
 - PHP-only / static-only shared hosting with no Node
 - FTP upload of `public/` only
-- Serverless file storage as sole persistence (Vercel `/tmp` is ephemeral; on-prem should use `data/` or integrate DB)
+- Vercel deploy **without** `BLOB_READ_WRITE_TOKEN` (leads land in ephemeral `/tmp` only)
+- Expecting PHP/phpMyAdmin-only hosting with no Node (no DB schema is provided — persistence is JSON files or Blob)
 
 ---
 
@@ -138,7 +168,8 @@ Create `/var/www/business-aiq/.env` (permissions **600**, owner = service user):
 | `CONSULTATION_URL` | No | Overrides CTA for all languages if set |
 | `CONSULTATION_URL_EN` | No | Result CTA (English) — default: 3Business contact EN |
 | `CONSULTATION_URL_ZH` | No | Result CTA (繁中) — default: 3Business contact TC |
-| `LEAD_WEBHOOK_URL` | No | POST JSON body on each successful submit |
+| `LEAD_WEBHOOK_URL` | No | POST JSON body on each successful submit (recommended if CRM is system of record) |
+| `BLOB_READ_WRITE_TOKEN` | Vercel only | Enables durable lead storage on Vercel (`vercel-blob` mode). Create a Blob store in the Vercel project and link the token. **Not used on on-prem** (uses `data/submissions.json` instead). |
 | `EMAIL_API_KEY` | No | Placeholder for transactional email integration |
 | `EMAIL_FROM` | No | Sender address for report email |
 
@@ -163,7 +194,9 @@ On start, the process logs **localhost** URLs and any detected **LAN IPv4** addr
 
 Load env in systemd (below) or export before `npm start`.
 
-### 5.3 Writable data directory
+### 5.3 Writable data directory (on-prem / VM)
+
+**Skip this section on Vercel** — use **`BLOB_READ_WRITE_TOKEN`** instead (§2.3).
 
 ```bash
 mkdir -p /var/www/business-aiq/data
@@ -171,7 +204,7 @@ chown deploy:deploy /var/www/business-aiq/data
 chmod 750 /var/www/business-aiq/data
 ```
 
-Leads are appended to **`data/submissions.json`**. Schedule **backup** (daily during campaign) and restrict filesystem ACLs.
+Leads are appended to **`data/submissions.json`**. Schedule **backup** (daily during campaign) and restrict filesystem ACLs. No database install or migration is required.
 
 ### 5.4 Start command
 
@@ -386,6 +419,8 @@ IT may inject **Google Tag Manager** in `public/index.html` for GA4.
 
 | Integration | Env var | Behaviour |
 |-------------|---------|-----------|
+| Lead file backup | *(on-prem)* | Copy `data/submissions.json` on schedule; no DB |
+| Vercel Blob | `BLOB_READ_WRITE_TOKEN` | One JSON object per lead under `leads/` |
 | CRM / webhook | `LEAD_WEBHOOK_URL` | POST full lead record JSON on submit |
 | Email report | `EMAIL_API_KEY`, `EMAIL_FROM` | Hook in `server/notifications.js` (requires IT to wire SendGrid/SES/etc.) |
 | Result CTA | `CONSULTATION_URL_*` | Opens 3Business contact form in new tab |
@@ -413,7 +448,8 @@ No database migration required.
 - [ ] Survey loads at `https://<hostname>/` (EN + 繁中 toggle)
 - [ ] Complete flow: all questions → contact → result with gauge and tier
 - [ ] Raw 10 → AIQ **0**; raw 40 → AIQ **100** (smoke test)
-- [ ] Lead appears in `data/submissions.json` and `/admin` with `ADMIN_KEY`
+- [ ] Lead appears in `/admin` with `ADMIN_KEY`; on-prem also in `data/submissions.json`
+- [ ] `/api/results` reports expected **`storageMode`** (`file` on VM; `vercel-blob` on Vercel)
 - [ ] CTA opens 3Business contact page
 - [ ] Mobile: iOS Safari + Android Chrome
 - [ ] TLS certificate valid; HTTP redirects to HTTPS
@@ -427,7 +463,7 @@ No database migration required.
 |---------|--------------|-----|
 | **403 Forbidden** | No `index.html` in web root / wrong folder | Run Node + proxy; or upload **`public/`** contents only with `.htaccess` (API still needs Node) |
 | **Failed to fetch** | Node not running or API not proxied | Start service; proxy `/api` to same origin |
-| **Admin empty** | New server / empty `data/` | Expected until first submit; check file permissions |
+| **Admin empty** | New server / empty `data/` / Vercel without Blob | Expected until first submit; on-prem check `data/` permissions; on Vercel set **`BLOB_READ_WRITE_TOKEN`** and redeploy |
 | **CTA wrong URL** | Old env `CONSULTATION_URL` | Set URLs in `.env` to `web.three.com.hk` contact pages |
 | **LAN device cannot open survey** | `LISTEN_HOST=127.0.0.1` or macOS firewall | Set `LISTEN_HOST=0.0.0.0` for rehearsal; allow Node incoming on `PORT` in firewall; use URL printed at startup (e.g. `http://192.168.x.x:3000`) |
 
@@ -437,9 +473,9 @@ No database migration required.
 
 | Environment | URL | Notes |
 |-------------|-----|--------|
-| Vercel (dev/demo) | https://survey-taupe-three.vercel.app | Ephemeral `/tmp` storage on serverless — **not** recommended for production lead retention |
-| Local dev / LAN rehearsal | `http://127.0.0.1:3000`, `http://<LAN-IP>:3000` | `LISTEN_HOST=0.0.0.0`; leads in `data/submissions.json` on that machine |
-| On-prem / VM | `https://<IT-assigned-host>/` | **Recommended** for PDPO + durable `data/submissions.json`; `LISTEN_HOST=127.0.0.1` + reverse proxy |
+| Vercel (dev/demo) | https://survey-taupe-three.vercel.app | Use **`BLOB_READ_WRITE_TOKEN`** for durable leads; without it, **`vercel-ephemeral`** `/tmp` only |
+| Local dev / LAN rehearsal | `http://127.0.0.1:3000`, `http://<LAN-IP>:3000` | `LISTEN_HOST=0.0.0.0`; **`storageMode: file`** → `data/submissions.json` |
+| On-prem / VM | `https://<IT-assigned-host>/` | **Recommended** for PDPO: JSON file + backup; **`LISTEN_HOST=127.0.0.1`** + reverse proxy; no DB required |
 
 ---
 
